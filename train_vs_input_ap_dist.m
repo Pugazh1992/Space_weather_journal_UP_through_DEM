@@ -1,22 +1,142 @@
 
+
 %{
+================================================================================
+File name
+================================================================================
+train_vs_input_ap_dist.m
 
-This script compares the statistics of the Ap from the training
-data of the NN with that of the statistics of the lognormal input SW
-indices distribution created for the MC simulation.
- 
-version 1:
- - Three different cases of Ap are considered with the SWARM-C satellite.
- - Monte-Carlo samples of Ap are created for each case and appended to
- the rest of the deterministic outputs. The number of Monte-Carlo samples
- is user-defined.
+================================================================================
+Purpose
+================================================================================
+This MATLAB diagnostic script compares the distribution of the Ap geomagnetic
+index used in the neural-network/AETHER-P3 training input data with a lognormal
+uncertain-input distribution generated for Monte-Carlo-style space-weather
+uncertainty studies.
 
+The script focuses on three Swarm-C representative cases:
+    1. High_Ap
+    2. Low_Ap
+    3. Medium_Ap
 
-Authors:
-1) Ruochen Wang, Ph.D. student, XBai Research Group, Rutgers University.
-2) Dr. Pugazhenthi Sivasankar, Post-doctoral researcher, XBai Research
-Group, Rutgers University.
+For each case, the script:
+    - loads the deterministic Swarm-C input/output sample,
+    - perturbs only the Ap input using a base-10 lognormal distribution,
+    - generates a large Monte-Carlo sample set,
+    - builds Unscented Transform sigma points for the same lognormal input,
+    - compares MC and UT input statistics,
+    - propagates the uncertain Ap input through a nonlinear test system,
+      y = 5*x^2 + 3,
+    - compares the output statistics obtained from MC samples and UT
+      recombination.
 
+This file is intended for verification and visualization of the lognormal
+space-weather input model and the one-dimensional UT approximation before those
+uncertainty models are used in larger thermospheric-density/orbit-propagation
+studies.
+
+================================================================================
+External file dependencies
+================================================================================
+MATLAB dependencies:
+    - MATLAB base functionality
+    - Statistics and Machine Learning Toolbox functions used by this script:
+        * skewness
+        * ksdensity
+
+Project data/model dependencies:
+    - GPinput.mat
+      Used to read the NN/AETHER-P3 training input matrix xdata and extract:
+        * F10.7 from column 12
+        * Ap from column 16
+
+    - Swarm-C representative-case input/output files located under
+      parent_dir_str:
+        * High_Ap/GPinputS.mat
+        * High_Ap/GPoutputS.mat
+        * Low_Ap/GPinputS.mat
+        * Low_Ap/GPoutputS.mat
+        * Medium_Ap/GPinputS.mat
+        * Medium_Ap/GPoutputS.mat
+
+No Orekit data files, Java classes, ONNX Runtime calls, or orbit-propagation
+executions are required by this MATLAB script.
+
+================================================================================
+Input files required
+================================================================================
+The following files must be available before running this script:
+    1. GPinput.mat in the active MATLAB path or current working directory.
+    2. The case-specific Swarm-C files listed above inside the directory defined
+       by parent_dir_str.
+
+The required variables inside the .mat files are:
+    - xdata in GPinput.mat and each GPinputS.mat file
+    - ydata in each GPoutputS.mat file
+
+The script assumes the following xdata column convention:
+    - column 7  : satellite latitude
+    - column 8  : satellite longitude
+    - column 9  : satellite altitude
+    - column 12 : F10.7
+    - column 15 : Dst
+    - column 16 : Ap
+
+================================================================================
+Output produced: figures, tables, and files
+================================================================================
+Figures produced in MATLAB:
+    Figure 1:
+        Comparative histograms of NN training Ap data and uncertain lognormal
+        Ap input samples for the three Swarm-C cases.
+
+    Figure 2:
+        Comparison of Monte-Carlo Ap input histograms against the UT sigma
+        points for the same lognormal input distributions.
+
+    Figure 3:
+        Comparison of nonlinear-system outputs generated from the MC Ap samples
+        and the corresponding UT sigma-point outputs.
+
+Command-window tables/diagnostics:
+    - train_SW_stats:
+        Mean, standard deviation, skewness, minimum, and maximum of F10.7 and
+        Ap in the NN training data.
+
+    - tblSpaceWeather:
+        Case metadata for the selected Swarm-C Ap scenarios.
+
+    - input_SW_stats:
+        MC statistics of the uncertain Ap input samples.
+
+    - ut_SW_stats:
+        UT-reconstructed statistics of the uncertain Ap input.
+
+    - output_mc_stats:
+        MC statistics after nonlinear-system propagation.
+
+    - output_ut_stats:
+        UT-reconstructed output statistics after nonlinear-system propagation.
+
+    - ovl_coeff:
+        Kernel-density overlap coefficient between the training Ap distribution
+        and each uncertain input distribution.
+
+Saved output files:
+    - None.  This script displays figures and prints MATLAB tables, but it does
+      not save .mat, .fig, .png, .csv, or other output files unless the user adds
+      explicit save commands later.
+
+================================================================================
+Author information
+================================================================================
+Author / script owner: Dr. Pugazhenthi Sivasankar
+Affiliation: XBai Research Group, Department of Mechanical and Aerospace
+Engineering, Rutgers University
+Research context: Space-weather input uncertainty modeling and uncertainty
+propagation for AETHER-P3 thermospheric-density/orbit-prediction studies.
+Documentation prepared with ChatGPT assistance.
+================================================================================
 %}
 
 % Begin with a clean workspace, figures and a command window:

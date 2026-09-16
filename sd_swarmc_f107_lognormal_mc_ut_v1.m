@@ -1,28 +1,132 @@
-
 %{
+===============================================================================
+File name
+===============================================================================
+sd_swarmc_f107_lognormal_mc_ut_v1.m
 
-This script creates sample input data for the MC & UT simulation of thermosphere
-density predictions using global thermosphere density prediction framework.
-It treats the solar radio flux, F10.7, as a random variable among the 64
-other deterministic inputs. Both MC samples and UT sigma points are
-obtained from the lognormal distribution.
- 
-version 1:
- - Three different cases of F10.7 are considered with the SWARM-C satellite.
- - Monte-Carlo samples of F10.7 are created for each case and appended to
- the rest of the deterministic outputs. The number of Monte-Carlo samples
- is user-defined.
- - UT sigma points of F10.7 are created for each case and appended to
- the rest of the deterministic outputs.
- - Both the MC samples and UT sigma points will be used as inputs to the
- global thermosphere density prediction framework.
+===============================================================================
+Purpose
+===============================================================================
+This MATLAB script prepares uncertain input data for Monte-Carlo (MC) and
+Unscented Transform (UT) thermosphere-density prediction studies using a
+Swarm-C test case.  The script treats the F10.7 solar radio flux index as the
+single uncertain space-weather input and keeps the remaining model input
+features deterministic.
 
+For each selected Swarm-C case and noise ratio, the script:
+  1. Loads the deterministic input vector and output density value.
+  2. Repeats the deterministic input vector to form an MC input ensemble.
+  3. Replaces the F10.7 column with base-10 lognormal MC samples.
+  4. Constructs three UT sigma points for the same base-10 lognormal F10.7
+     uncertainty model.
+  5. Replaces the F10.7 column in the UT input matrix with these sigma points.
+  6. Generates a histogram showing the MC F10.7 distribution and the UT sigma
+     point locations.
+  7. Saves the MC and UT input .mat files for downstream global thermosphere
+     density-prediction runs.
 
-Authors:
-1) Ruochen Wang, Ph.D. student, XBai Research Group, Rutgers University.
-2) Dr. Pugazhenthi Sivasankar, Post-doctoral researcher, XBai Research
-Group, Rutgers University.
+The active cases are:
+  - High_f107
+  - Low_f107
+  - Medium_f107
 
+The active noise ratios are:
+  - 0.10
+  - 0.25
+
+The active MC sample count is 1,000,000, and the UT uses 3 sigma points because
+only one scalar random variable, F10.7, is being perturbed.
+
+===============================================================================
+External file dependencies
+===============================================================================
+MATLAB/toolbox dependencies:
+  - MATLAB base functionality: load, table, repmat, randn, figure,
+    tiledlayout, histogram, xline, mkdir, save, and basic array operations.
+  - No Orekit, Java, ONNX Runtime, or SP3 reader is called by this script.
+
+Project/data dependencies:
+  - The parent data directory is set by:
+        parent_dir_str = 'Output/Swarm/';
+  - The following Swarm-C case folders must exist under parent_dir_str:
+        High_f107/
+        Low_f107/
+        Medium_f107/
+
+===============================================================================
+Input files required
+===============================================================================
+For each case folder, the script expects:
+  - GPinputS.mat
+  - GPoutputS.mat
+
+Therefore, the required files are:
+  - Output/Swarm/High_f107/GPinputS.mat
+  - Output/Swarm/High_f107/GPoutputS.mat
+  - Output/Swarm/Low_f107/GPinputS.mat
+  - Output/Swarm/Low_f107/GPoutputS.mat
+  - Output/Swarm/Medium_f107/GPinputS.mat
+  - Output/Swarm/Medium_f107/GPoutputS.mat
+
+Required variables inside the .mat files:
+  - xdata in each GPinputS.mat file
+  - ydata in each GPoutputS.mat file
+
+The script assumes the following xdata column convention:
+  - Column 7  : satellite latitude
+  - Column 8  : satellite longitude
+  - Column 9  : satellite altitude
+  - Column 12 : F10.7 solar radio flux index
+  - Column 15 : Dst geomagnetic index
+  - Column 16 : Ap geomagnetic index
+
+===============================================================================
+Output produced: figures, tables, and .mat files
+===============================================================================
+Figures:
+  - One MATLAB histogram figure is generated for each case and noise ratio.
+  - Each figure shows the base-10 lognormal MC F10.7 input distribution and
+    overlays the three UT sigma-point locations.
+  - With the active setup, the script generates 6 figures:
+        3 F10.7 cases x 2 noise ratios.
+  - The figures are displayed but are not automatically saved as .fig, .png,
+    or .pdf files.
+
+Command-window output:
+  - The table tblSpaceWeather is displayed after the loop.  It contains the
+    case number, satellite name, selected F10.7/Dst/Ap values, satellite
+    location information, and the active noise-ratio value stored during the
+    loop.
+
+Saved .mat files:
+  For each case and noise ratio, output files are saved in:
+        Output/Swarm/<case>/Noise_ratio_<noise_ratio>/lognormal_mc_ut/
+
+  MC input file:
+        Noisy_f107_MC_1000000.mat
+    containing:
+        xdata1_mc_lognormal, ydata1_mc, f107_selected, Dst_selected,
+        Ap_selected, noise_ratio_current
+
+  UT input file:
+        sigma_points_f107_ut_3.mat
+    containing:
+        xdata1_ut, ydata1_ut, f107_selected, Dst_selected, Ap_selected,
+        noise_ratio_current, Wm, Wc
+
+These .mat files are intended to be used as downstream inputs to the global
+thermosphere-density prediction framework.
+
+===============================================================================
+Author information
+===============================================================================
+Author / script owner: Dr. Pugazhenthi Sivasankar
+Affiliation: XBai Research Group, Department of Mechanical and Aerospace
+             Engineering, Rutgers University
+Research context: Space-weather input uncertainty propagation through a global
+                  thermosphere-density prediction framework using MC and UT.
+Documentation note: Header documentation prepared with ChatGPT assistance.
+===============================================================================
 %}
 
 % Begin with a clean workspace, figures and a command window:

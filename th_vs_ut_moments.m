@@ -1,15 +1,89 @@
 
+
 %{
+================================================================================
+File name
+================================================================================
+th_vs_ut_moments.m
 
-This script checks the first three statistical moments propagation through
-linear and nonlinear systems. The theoretical moments are compared with
-the moments obtained from the UT recombination equations.
+================================================================================
+Purpose
+================================================================================
+This MATLAB verification script compares theoretical moment propagation with
+moments reconstructed using Unscented Transform recombination equations.
 
+The input random variable is represented as a base-10 lognormal variable.  The
+script computes the theoretical mean, variance, and skewness of the input and
+then compares them with the corresponding UT-reconstructed moments obtained from
+log-domain sigma points mapped back to the linear domain.
 
-Authors:
-1) Dr. Pugazhenthi Sivasankar, Post-doctoral researcher, XBai Research
-Group, Rutgers University.
+The same comparison is then repeated after propagating the input random variable
+through two scalar test systems:
+    1. Linear system:    y = 5*x + 3
+    2. Nonlinear system: y = 5*x^2 + 3
 
+This script is intended as a compact mathematical consistency check for the
+lognormal UT construction used in the larger space-weather and thermospheric-
+density uncertainty-propagation workflow.
+
+================================================================================
+External file dependencies
+================================================================================
+MATLAB dependencies:
+    - MATLAB base functionality
+    - No external MATLAB toolboxes are explicitly required by the current script.
+
+Project data/model dependencies:
+    - None.  This script is self-contained and does not load GPinput.mat,
+      GPoutput.mat, Orekit .mat files, ONNX model files, SP3 files, or
+      CHAMP/Swarm density files.
+
+================================================================================
+Input files required
+================================================================================
+No external input file is required.
+
+The input distribution and system coefficients are defined directly in the
+script:
+    - target_mean     = 100
+    - target_variance = 4
+    - sys_coeff_a     = 5
+    - sys_coeff_b     = 3
+
+The local function ut_sigma_points_log10_lognormal constructs the UT sigma
+points and weights from the specified linear-domain mean and variance.
+
+================================================================================
+Output produced: figures, tables, and files
+================================================================================
+Figures produced in MATLAB:
+    - None.  This script does not generate figures.
+
+Command-window tables/diagnostics:
+    - input_table:
+        Theoretical and UT-reconstructed mean, variance, and skewness of the
+        base-10 lognormal input random variable.
+
+    - output_table:
+        Theoretical and UT-reconstructed mean, variance, and skewness after
+        propagation through the linear and nonlinear scalar systems.
+
+Saved output files:
+    - None.  This script prints MATLAB tables to the Command Window, but it does
+      not save .mat, .fig, .png, .csv, or other output files unless the user adds
+      explicit save commands later.
+
+================================================================================
+Author information
+================================================================================
+Author / script owner: Dr. Pugazhenthi Sivasankar
+Affiliation: XBai Research Group, Department of Mechanical and Aerospace
+Engineering, Rutgers University
+Research context: Verification of Unscented Transform moment propagation for
+base-10 lognormal uncertainty variables used in space-weather and orbit-
+uncertainty studies.
+Documentation prepared with ChatGPT assistance.
+================================================================================
 %}
 
 
